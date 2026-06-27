@@ -23,6 +23,8 @@
 
   --color-tag-text-light: #ffffff;
 
+  --subject-accent: transparent;
+
   /* DARK THEME COLORS */
   --color-bg-main-dark: #000000;
   --color-bg-card-dark: #000000;
@@ -162,7 +164,19 @@ body {
 .front-card {
   font-size: var(--fs-front);
   font-weight: var(--fw-front);
+	border-left: 5px solid var(--subject-accent);
+	padding-left: 12px;
 }
+
+.subject-critical   { --subject-accent: #546E7A; }
+.subject-arts       { --subject-accent: #8E44AD; }
+.subject-languages  { --subject-accent: #009688; }
+.subject-governance { --subject-accent: #1976D2; }
+.subject-history    { --subject-accent: #8D6E63; }
+.subject-systems    { --subject-accent: #3F51B5; }
+.subject-inorganic  { --subject-accent: #F57C00; }
+.subject-organic    { --subject-accent: #43A047; }
+.subject-default    { --subject-accent: #999999; }
 
 .common-card {
   font-size: var(--fs-common);

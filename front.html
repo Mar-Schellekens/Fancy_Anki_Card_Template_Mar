@@ -11,6 +11,8 @@
 
 <span hidden id="tagSource">{{Tags}}</span>
 
+<span hidden id="deckSource">{{Deck}}</span>
+
 <script>
 (() => {
   const tagSourceEl = document.getElementById("tagSource");
@@ -133,5 +135,57 @@
 
   if (!normalEl.children.length) normalEl.style.display = "none";
   if (!qtEl.children.length) qtEl.style.display = "none";
+})();
+</script>
+
+<script>
+(() => {
+  const deckEl = document.getElementById("deckSource");
+  const container = document.querySelector(".card-container");
+
+  if (!deckEl || !container) return;
+
+  const deck = (deckEl.textContent || "").toLowerCase();
+
+  const rules = [
+    ["critical thinking", "subject-critical"],
+    ["art", "subject-arts"],
+    ["music", "subject-arts"],
+    ["visual arts", "subject-arts"],
+    ["cultural practices", "subject-arts"],
+    ["ethnicities", "subject-arts"],
+    ["false belief systems", "subject-arts"],
+    ["language skills", "subject-languages"],
+    ["french", "subject-languages"],
+    ["japanese", "subject-languages"],
+    ["dutch", "subject-languages"],
+    ["english", "subject-languages"],
+    ["governance & territory", "subject-governance"],
+    ["geographic names", "subject-governance"],
+    ["human rights", "subject-governance"],
+    ["state organization", "subject-governance"],
+    ["current affairs", "subject-governance"],
+    ["history", "subject-history"],
+    ["human systems sciences", "subject-systems"],
+    ["software programming", "subject-systems"],
+    ["bookkeeping", "subject-systems"],
+    ["engineering", "subject-systems"],
+    ["macroeconomics", "subject-systems"],
+    ["inorganic sciences", "subject-inorganic"],
+    ["organic sciences", "subject-organic"],
+    ["animals", "subject-organic"],
+    ["plants", "subject-organic"],
+    ["human body", "subject-organic"],
+    ["biochemistry", "subject-organic"]
+  ];
+
+  for (const [needle, className] of rules) {
+    if (deck.includes(needle)) {
+      container.classList.add(className);
+      return;
+    }
+  }
+
+  container.classList.add("subject-default");
 })();
 </script>
