@@ -111,6 +111,7 @@ body {
   background-color: var(--bg-card) !important;
 }
 
+
 /* TAGS */
 .tag-container {
   display: flex;
@@ -165,7 +166,12 @@ body {
   font-size: var(--fs-front);
   font-weight: var(--fw-front);
 	border-left: 5px solid var(--subject-accent);
+	border-right: 5px solid transparent;
 	padding-left: 12px;
+}
+
+.card-container.is-leech .front-card {
+	border-right-color: #b30000
 }
 
 .subject-critical   { --subject-accent: #546E7A; }

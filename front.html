@@ -1,5 +1,7 @@
 <div class="card-container">
 
+	<div id="leechContainer"></div>
+
   <!-- Normal (always-visible) tags -->
   <div class="tag-container" id="tagContainer"></div>
 
@@ -18,8 +20,9 @@
   const tagSourceEl = document.getElementById("tagSource");
   const normalEl = document.getElementById("tagContainer");
   const qtEl = document.getElementById("qtContainer");
+	const container = document.querySelector(".card-container");
 
-  if (!tagSourceEl || !normalEl || !qtEl) return;
+  if (!tagSourceEl || !normalEl || !qtEl || !container) return;
 
   const raw = (tagSourceEl.textContent || "").trim();
   if (!raw) return;
@@ -70,12 +73,8 @@
     const last = lastRaw.toLowerCase();
 
     if (last === "leech") {
-      normal.unshift({
-        label: "leech",
-        color: null,
-        type: "leech"
-      });
-      continue;
+      container.classList.add("is-leech")
+			continue;
     }
 
     if (PREFIX.hid.test(lastRaw)) continue;

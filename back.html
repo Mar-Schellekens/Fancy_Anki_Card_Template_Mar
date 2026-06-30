@@ -61,8 +61,9 @@
   const normalEl = document.getElementById("tagContainer");
   const qtEl = document.getElementById("qtContainer");
   const atEl = document.getElementById("atContainer");
+	const container = document.querySelector(".card-container");
 
-  if (!tagSourceEl || !normalEl || !qtEl || !atEl) return;
+  if (!tagSourceEl || !normalEl || !qtEl || !atEl || !container) return;
 
   const raw = (tagSourceEl.textContent || "").trim();
   if (!raw) return;
@@ -118,16 +119,11 @@
 
     const lastRaw = parts[parts.length - 1];
     const last = lastRaw.toLowerCase();
-
-    if (last === "leech") {
-      normal.unshift({
-        label: "leech",
-        color: null,
-        type: "leech"
-      });
-      continue;
-    }
-
+	
+		if (last === "leech") {
+  		container.classList.add("is-leech");
+ 		  continue;
+		}
     if (PREFIX.hid.test(lastRaw)) continue;
 
     if (PREFIX.qt.test(lastRaw)) {
