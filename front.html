@@ -163,7 +163,7 @@
     ["geographic names", "subject-governance"],
     ["human rights", "subject-governance"],
     ["state organization", "subject-governance"],
-    ["current affairs", "subject-governance"],
+    ["current affairs", "subject-history"],
     ["history", "subject-history"],
     ["human systems sciences", "subject-systems"],
     ["software programming", "subject-systems"],
@@ -187,4 +187,122 @@
 
   container.classList.add("subject-default");
 })();
+</script>
+
+<script>
+document.querySelectorAll("code").forEach(block => {
+
+    let source = block.innerHTML
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/&nbsp;/gi, " ");
+
+    const decoder = document.createElement("textarea");
+    decoder.innerHTML = source;
+    source = decoder.value;
+
+    const keywords = new Set([
+        "and", "as", "assert", "async", "await",
+        "break", "class", "continue", "def", "del",
+        "elif", "else", "except", "finally", "for",
+        "from", "global", "if", "import", "in",
+        "is", "lambda", "nonlocal", "not", "or",
+        "pass", "raise", "return", "try", "while",
+        "with", "yield"
+    ]);
+
+    const literals = new Set([
+        "True", "False", "None"
+    ]);
+
+    const builtins = new Set([
+        "abs", "all", "any", "bool", "dict",
+        "enumerate", "filter", "float", "input",
+        "int", "isinstance", "len", "list", "map",
+        "max", "min", "next", "object", "open",
+        "print", "range", "repr", "reversed",
+        "round", "set", "sorted", "str", "sum",
+        "super", "tuple", "type", "zip"
+    ]);
+
+    const token =
+        /#[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|@[A-Za-z_]\w*|\b\d+(?:\.\d+)?\b|\b[A-Za-z_]\w*\b/g;
+
+    let html = "";
+    let last = 0;
+    let previous = null;
+
+    for (const match of source.matchAll(token)) {
+        html += escapeHtml(source.slice(last, match.index));
+
+        const text = match[0];
+        let type = null;
+
+        if (text.startsWith("#"))
+            type = "comment";
+
+        else if (text.startsWith('"') || text.startsWith("'"))
+            type = "string";
+
+        else if (text.startsWith("@"))
+            type = "decorator";
+
+        else if (/^\d/.test(text))
+            type = "number";
+
+        else if (previous === "def")
+            type = "function";
+
+        else if (previous === "class")
+            type = "class";
+
+        else if (keywords.has(text))
+            type = "keyword";
+
+        else if (literals.has(text))
+            type = "literal";
+
+        else if (builtins.has(text))
+            type = "builtin";
+
+        else if (text === "self" || text === "cls")
+            type = "special";
+
+        html += type
+            ? `<span class="syn-${type}">${escapeHtml(text)}</span>`
+            : escapeHtml(text);
+
+        previous = text;
+        last = match.index + text.length;
+    }
+const lines = html.split("\n");
+
+block.innerHTML = lines.map(line => {
+    // Get the plain-text version so HTML highlighting
+    // doesn't interfere with counting indentation.
+    const temp = document.createElement("div");
+    temp.innerHTML = line;
+    const text = temp.textContent;
+
+    // Count leading spaces
+    const match = text.match(/^ */);
+    const spaces = match ? match[0].length : 0;
+
+    /*
+     * Wrapped text starts:
+     *   - 4 characters in for unindented lines
+     *   - 4 characters beyond the existing indentation
+     */
+    const continuation = spaces + 4;
+
+    return `<span class="code-line"
+                  style="--continuation:${continuation}ch">${line || "&nbsp;"}</span>`;
+}).join("");
+});
+
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
 </script>

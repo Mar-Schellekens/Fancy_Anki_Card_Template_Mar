@@ -6,12 +6,91 @@
    Change these values to localize headings without JS.
 ========================================================= */
 
+a {
+    color: #0000EE;
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #551A8B;
+}
+
+a:hover {
+    color: #0000EE;
+}
+
+code {
+    display: block;
+		width: 100%;
+		box-sizing: border-box;
+		overflow: visible;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.7em;
+		line-height: 1.35;
+    text-align: left;
+
+}
+
+.code-line {
+    display: block;
+		white-space: pre-wrap;
+    padding-left: calc(0.2*var(--continuation));
+    text-indent: calc(-1 * calc(0.5* var(--continuation)));
+
+		box-sizing: border-box;
+		width: 100%;
+		overflow-wrap: anywhere;
+}
+
+
+
+.syn-keyword {
+    color: #c586c0 !important;
+}
+
+.syn-string {
+    color: #ce9178 !important;
+}
+
+.syn-comment {
+    color: #6a9955 !important;
+    font-style: italic;
+}
+
+.syn-number {
+    color: #569cd6 !important;
+}
+
+.syn-literal {
+    color: #569cd6 !important;
+}
+
+.syn-builtin {
+    color: #4ec9b0 !important;
+}
+
+.syn-decorator {
+    color: #AEC410 !important;
+}
+
+.syn-function {
+    color: #705E07!important;
+}
+
+.syn-class {
+    color: #4ec9b0 !important;
+}
+
+.syn-special {
+    color: #241FAB !important;
+}
 :root {
 	/* LOCALIZATION */
 	--h-extra-title: "Extra info";
-  --h-extra-reminder: "No need to memorize";
-  --h-hint-title: "Mnemonic";
-  --h-source-title: "Source";
+  --h-extra-reminder: "Dit hoef je niet te herinneren";
+  --h-hint-title: "Ezelsbruggetje";
+  --h-source-title: "Bron";
+	--h-pronounciation-title: "Uitspraak";
 
   /* LIGHT THEME COLORS */
   --color-bg-main-light: #f5f6fa;
@@ -179,7 +258,7 @@ body {
 .subject-languages  { --subject-accent: #009688; }
 .subject-governance { --subject-accent: #1976D2; }
 .subject-history    { --subject-accent: #8D6E63; }
-.subject-systems    { --subject-accent: #3F51B5; }
+.subject-systems    { --subject-accent: #8f821e; }
 .subject-inorganic  { --subject-accent: #F57C00; }
 .subject-organic    { --subject-accent: #43A047; }
 .subject-default    { --subject-accent: #999999; }
@@ -192,6 +271,11 @@ body {
 .front-card *,
 .common-card * {
   color: inherit;
+}
+
+.front-card a,
+.common-card a {
+  color: #0000EE;
 }
 
 /* IMAGES */
@@ -212,6 +296,8 @@ img {
 
 .reminder { font-style: italic; }
 
+
+
 /* =========================================================
    HEADING TEXT INJECTION (NO JS)
 ========================================================= */
@@ -221,6 +307,7 @@ img {
 
 .subtitle--hint::before   { content: var(--h-hint-title); }
 .subtitle--source::before { content: var(--h-source-title); }
+.subtitle--pronounciation::before { content: var(--h-pronounciation-title); }
 
 .common-card h1 { font-size: 24px; }
 .common-card h2 { font-size: 22px; }
