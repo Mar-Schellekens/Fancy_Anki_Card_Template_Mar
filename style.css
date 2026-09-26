@@ -244,7 +244,7 @@ body {
 .front-card {
   font-size: var(--fs-front);
   font-weight: var(--fw-front);
-	border-left: 5px solid var(--subject-accent);
+	border-left: 5px solid var(--sidebar-color, #000000);
 	border-right: 5px solid transparent;
 	padding-left: 12px;
 }
@@ -262,6 +262,7 @@ body {
 .subject-inorganic  { --subject-accent: #F57C00; }
 .subject-organic    { --subject-accent: #43A047; }
 .subject-default    { --subject-accent: #999999; }
+.subject-programming { --subject-accent: #6B2C39; }
 
 .common-card {
   font-size: var(--fs-common);

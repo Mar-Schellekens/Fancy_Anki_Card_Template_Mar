@@ -20,7 +20,7 @@
   const tagSourceEl = document.getElementById("tagSource");
   const normalEl = document.getElementById("tagContainer");
   const qtEl = document.getElementById("qtContainer");
-	const container = document.querySelector(".card-container");
+  const container = document.querySelector(".card-container");
 
   if (!tagSourceEl || !normalEl || !qtEl || !container) return;
 
@@ -32,24 +32,75 @@
     hid: /^hid(?:[:\-_ ]+|$)/i
   };
 
+  /*
+   * Examples:
+   *
+   * Mediterranean__t#100d69
+   * Europe__s#2584a1
+   * Something__t#123456__s#abcdef
+   */
+  const STYLE =
+    /__(t|s)#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?=__|$)/g;
+
   const stripPrefix = (s) =>
     s.replace(/^(qt|hid)(?:[:\-_ ]+|$)/i, "").trim();
 
   const parseStyledLabel = (str) => {
-    const match = str.match(
-      /^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}))\|(.*)$/
-    );
+    let tagColor = null;
+    let sidebarColor = null;
 
-    if (match) {
-      return {
-        color: match[1],
-        label: match[2].replace(/_/g, " ").trim()
-      };
-    }
+    const label = str
+      .replace(STYLE, (_, type, hex) => {
+        if (type.toLowerCase() === "t") {
+          tagColor = "#" + hex;
+        }
+
+        if (type.toLowerCase() === "s") {
+          sidebarColor = "#" + hex;
+        }
+
+        return "";
+      })
+      .replace(/_/g, " ")
+      .trim();
 
     return {
-      color: null,
-      label: str.replace(/_/g, " ").trim()
+      label,
+      tagColor,
+      sidebarColor
+    };
+  };
+
+  /*
+   * Walk through a complete tag path and let deeper
+   * definitions override higher definitions.
+   */
+  const resolveStyles = (parts) => {
+    let tagColor = null;
+    let sidebarColor = null;
+
+    let tagColorDepth = -1;
+    let sidebarColorDepth = -1;
+
+    parts.forEach((part, index) => {
+      const parsed = parseStyledLabel(part);
+
+      if (parsed.tagColor) {
+        tagColor = parsed.tagColor;
+        tagColorDepth = index;
+      }
+
+      if (parsed.sidebarColor) {
+        sidebarColor = parsed.sidebarColor;
+        sidebarColorDepth = index;
+      }
+    });
+
+    return {
+      tagColor,
+      sidebarColor,
+      tagColorDepth,
+      sidebarColorDepth
     };
   };
 
@@ -58,37 +109,54 @@
   const normal = [];
   const qt = [];
 
+  /*
+   * Sidebar is a card-wide property rather than belonging
+   * to an individual pill.
+   *
+   * If multiple tag paths define one, the most specific
+   * sidebar definition wins.
+   */
+  let cardSidebarColor = null;
+  let cardSidebarDepth = -1;
+
   for (const token of tokens) {
     const parts = token.split("::").filter(Boolean);
     if (!parts.length) continue;
 
-    let activeColor = null;
+    const styles = resolveStyles(parts);
 
-    for (const part of parts) {
-      const parsed = parseStyledLabel(part);
-      if (parsed.color) activeColor = parsed.color;
+    if (
+      styles.sidebarColor &&
+      styles.sidebarColorDepth > cardSidebarDepth
+    ) {
+      cardSidebarColor = styles.sidebarColor;
+      cardSidebarDepth = styles.sidebarColorDepth;
     }
 
     const lastRaw = parts[parts.length - 1];
-    const last = lastRaw.toLowerCase();
+
+    /*
+     * Use the visible portion for special-tag checks,
+     * so metadata doesn't interfere.
+     */
+    const parsedLast = parseStyledLabel(lastRaw);
+    const visibleRaw = parsedLast.label;
+    const last = visibleRaw.toLowerCase();
 
     if (last === "leech") {
-      container.classList.add("is-leech")
-			continue;
+      container.classList.add("is-leech");
+      continue;
     }
 
-    if (PREFIX.hid.test(lastRaw)) continue;
+    if (PREFIX.hid.test(visibleRaw)) continue;
 
-    if (PREFIX.qt.test(lastRaw)) {
-      const cleaned = stripPrefix(lastRaw);
-      const parsed = parseStyledLabel(cleaned);
+    if (PREFIX.qt.test(visibleRaw)) {
+      const cleaned = stripPrefix(visibleRaw);
 
-      if (parsed.color) activeColor = parsed.color;
-
-      if (parsed.label) {
+      if (cleaned) {
         qt.push({
-          label: parsed.label,
-          color: activeColor,
+          label: cleaned,
+          color: styles.tagColor,
           type: "question"
         });
       }
@@ -98,15 +166,23 @@
 
     if (last === "at") continue;
 
-    const parsed = parseStyledLabel(lastRaw);
-
-    if (parsed.label) {
+    if (visibleRaw) {
       normal.push({
-        label: parsed.label,
-        color: activeColor,
+        label: visibleRaw,
+        color: styles.tagColor,
         type: "normal"
       });
     }
+  }
+
+  /*
+   * Make sidebar color available to CSS.
+   */
+  if (cardSidebarColor) {
+    container.style.setProperty(
+      "--sidebar-color",
+      cardSidebarColor
+    );
   }
 
   const addPills = (container, items) => {
@@ -134,58 +210,6 @@
 
   if (!normalEl.children.length) normalEl.style.display = "none";
   if (!qtEl.children.length) qtEl.style.display = "none";
-})();
-</script>
-
-<script>
-(() => {
-  const deckEl = document.getElementById("deckSource");
-  const container = document.querySelector(".card-container");
-
-  if (!deckEl || !container) return;
-
-  const deck = (deckEl.textContent || "").toLowerCase();
-
-  const rules = [
-    ["critical thinking", "subject-critical"],
-    ["art", "subject-arts"],
-    ["music", "subject-arts"],
-    ["visual arts", "subject-arts"],
-    ["cultural practices", "subject-arts"],
-    ["ethnicities", "subject-arts"],
-    ["false belief systems", "subject-arts"],
-    ["language skills", "subject-languages"],
-    ["french", "subject-languages"],
-    ["japanese", "subject-languages"],
-    ["dutch", "subject-languages"],
-    ["english", "subject-languages"],
-    ["governance & territory", "subject-governance"],
-    ["geographic names", "subject-governance"],
-    ["human rights", "subject-governance"],
-    ["state organization", "subject-governance"],
-    ["current affairs", "subject-history"],
-    ["history", "subject-history"],
-    ["human systems sciences", "subject-systems"],
-    ["software programming", "subject-systems"],
-    ["bookkeeping", "subject-systems"],
-    ["engineering", "subject-systems"],
-    ["macroeconomics", "subject-systems"],
-    ["inorganic sciences", "subject-inorganic"],
-    ["organic sciences", "subject-organic"],
-    ["animals", "subject-organic"],
-    ["plants", "subject-organic"],
-    ["human body", "subject-organic"],
-    ["biochemistry", "subject-organic"]
-  ];
-
-  for (const [needle, className] of rules) {
-    if (deck.includes(needle)) {
-      container.classList.add(className);
-      return;
-    }
-  }
-
-  container.classList.add("subject-default");
 })();
 </script>
 
