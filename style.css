@@ -5,6 +5,13 @@
    ---------------------------------------------------------
    Change these values to localize headings without JS.
 ========================================================= */
+.deck-name {
+  font-size: 10px;
+  opacity: 0.35;
+  margin-top: 3px;
+  line-height: 1;
+}
+
 
 a {
     color: #0000EE;
@@ -252,17 +259,6 @@ body {
 .card-container.is-leech .front-card {
 	border-right-color: #b30000
 }
-
-.subject-critical   { --subject-accent: #546E7A; }
-.subject-arts       { --subject-accent: #8E44AD; }
-.subject-languages  { --subject-accent: #009688; }
-.subject-governance { --subject-accent: #1976D2; }
-.subject-history    { --subject-accent: #8D6E63; }
-.subject-systems    { --subject-accent: #8f821e; }
-.subject-inorganic  { --subject-accent: #F57C00; }
-.subject-organic    { --subject-accent: #43A047; }
-.subject-default    { --subject-accent: #999999; }
-.subject-programming { --subject-accent: #6B2C39; }
 
 .common-card {
   font-size: var(--fs-common);

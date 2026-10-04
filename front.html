@@ -1,19 +1,16 @@
-<div class="card-container">
 
-	<div id="leechContainer"></div>
+<div class="card-container">
 
   <!-- Normal (always-visible) tags -->
   <div class="tag-container" id="tagContainer"></div>
 
   <!-- Question tags (qt*) appear directly above the question -->
   <div class="tag-container tag-container--question" id="qtContainer"></div>
-
   <div class="front-card">{{Front}}</div>
 </div>
 
 <span hidden id="tagSource">{{Tags}}</span>
 
-<span hidden id="deckSource">{{Deck}}</span>
 
 <script>
 (() => {
@@ -38,9 +35,12 @@
    * Mediterranean__t#100d69
    * Europe__s#2584a1
    * Something__t#123456__s#abcdef
+   * Something__t_none
    */
   const STYLE =
     /__(t|s)#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?=__|$)/g;
+
+  const TAG_NONE = /__t_none(?=__|$)/gi;
 
   const stripPrefix = (s) =>
     s.replace(/^(qt|hid)(?:[:\-_ ]+|$)/i, "").trim();
@@ -48,8 +48,13 @@
   const parseStyledLabel = (str) => {
     let tagColor = null;
     let sidebarColor = null;
+    let hideTag = false;
 
     const label = str
+      .replace(TAG_NONE, () => {
+        hideTag = true;
+        return "";
+      })
       .replace(STYLE, (_, type, hex) => {
         if (type.toLowerCase() === "t") {
           tagColor = "#" + hex;
@@ -67,7 +72,8 @@
     return {
       label,
       tagColor,
-      sidebarColor
+      sidebarColor,
+      hideTag
     };
   };
 
@@ -78,9 +84,11 @@
   const resolveStyles = (parts) => {
     let tagColor = null;
     let sidebarColor = null;
+    let hideTag = false;
 
     let tagColorDepth = -1;
     let sidebarColorDepth = -1;
+    let hideTagDepth = -1;
 
     parts.forEach((part, index) => {
       const parsed = parseStyledLabel(part);
@@ -94,13 +102,20 @@
         sidebarColor = parsed.sidebarColor;
         sidebarColorDepth = index;
       }
+
+      if (parsed.hideTag) {
+        hideTag = true;
+        hideTagDepth = index;
+      }
     });
 
     return {
       tagColor,
       sidebarColor,
+      hideTag,
       tagColorDepth,
-      sidebarColorDepth
+      sidebarColorDepth,
+      hideTagDepth
     };
   };
 
@@ -149,6 +164,13 @@
     }
 
     if (PREFIX.hid.test(visibleRaw)) continue;
+
+    /*
+     * t_none means:
+     * keep processing metadata/sidebar,
+     * but do not create a visible tag box.
+     */
+    if (styles.hideTag) continue;
 
     if (PREFIX.qt.test(visibleRaw)) {
       const cleaned = stripPrefix(visibleRaw);
@@ -212,7 +234,6 @@
   if (!qtEl.children.length) qtEl.style.display = "none";
 })();
 </script>
-
 <script>
 document.querySelectorAll("code").forEach(block => {
 
