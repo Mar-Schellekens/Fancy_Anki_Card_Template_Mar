@@ -1,15 +1,27 @@
 <div class="card-container">
+   <!-- Normal orientation tags + deck icon -->
 
-  <!-- Normal (always-visible) tags -->
-  <div class="tag-container" id="tagContainer"></div>
+  <div class="tag-container" id="tagContainer">
+    <img
+      id="deckIcon"
+      class="deck-icon"
+      alt=""
+      hidden
+    >
+		
+  </div>
 
-  <!-- qt* tags above the question -->
-  <div class="tag-container tag-container--question" id="qtContainer"></div>
-  <div class="front-card">{{Front}}</div>
-
-  <!-- at* tags above the answer (only shown on back) -->
+  <!-- Standard question (__q#hex) -->
+  <div class="front-card" id="front-text">{{Front}}</div>
   <div class="tag-container tag-container--answer" id="atContainer"></div>
   <div class="common-card">{{Back}}</div>
+
+  {{#Pronounciation}}
+  <div class="common-card">
+    <div class="subtitle subtitle--pronounciation"></div>
+    {{Pronounciation}}
+  </div>
+  {{/Pronounciation}}
 
   {{#Extra}}
   <div class="common-card">
@@ -18,6 +30,14 @@
     {{Extra}}
   </div>
   {{/Extra}}
+
+  {{#Image}}
+  <div class="common-card">
+    {{Image}}
+  </div>
+  {{/Image}}
+
+
 
   {{#Hint}}
   <div class="common-card">
@@ -34,12 +54,7 @@
   {{/Source}}
 
 
-  {{#Pronounciation}}
-  <div class="common-card">
-    <div class="subtitle subtitle--pronounciation"></div>
-    {{Pronounciation}}
-  </div>
-  {{/Pronounciation}}
+
 
 </div>
 
@@ -48,226 +63,579 @@
 <span hidden id="deckSource">{{Deck}}</span>
 
 <script>
-(() => {
-  const tagSourceEl = document.getElementById("tagSource");
-  const normalEl = document.getElementById("tagContainer");
-  const qtEl = document.getElementById("qtContainer");
-  const container = document.querySelector(".card-container");
+  (() => {
 
-  if (!tagSourceEl || !normalEl || !qtEl || !container) return;
+    const tagSourceEl =
+      document.getElementById("tagSource");
 
-  const raw = (tagSourceEl.textContent || "").trim();
-  if (!raw) return;
+    const deckSourceEl =
+      document.getElementById("deckSource");
 
-  const PREFIX = {
-    qt: /^qt(?:[:\-_ ]+|$)/i,
-    hid: /^hid(?:[:\-_ ]+|$)/i
-  };
+    const normalEl =
+      document.getElementById("tagContainer");
 
-  /*
-   * Examples:
-   *
-   * Mediterranean__t#100d69
-   * Europe__s#2584a1
-   * Something__t#123456__s#abcdef
-   * Something__t_none
-   */
-  const STYLE =
-    /__(t|s)#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?=__|$)/g;
+    const questionEl =
+      document.getElementById("front-text");
 
-  const TAG_NONE = /__t_none(?=__|$)/gi;
+    const deckIconEl =
+      document.getElementById("deckIcon");
 
-  const stripPrefix = (s) =>
-    s.replace(/^(qt|hid)(?:[:\-_ ]+|$)/i, "").trim();
+    const container =
+      document.querySelector(".card-container");
 
-  const parseStyledLabel = (str) => {
-    let tagColor = null;
-    let sidebarColor = null;
-    let hideTag = false;
-
-    const label = str
-      .replace(TAG_NONE, () => {
-        hideTag = true;
-        return "";
-      })
-      .replace(STYLE, (_, type, hex) => {
-        if (type.toLowerCase() === "t") {
-          tagColor = "#" + hex;
-        }
-
-        if (type.toLowerCase() === "s") {
-          sidebarColor = "#" + hex;
-        }
-
-        return "";
-      })
-      .replace(/_/g, " ")
-      .trim();
-
-    return {
-      label,
-      tagColor,
-      sidebarColor,
-      hideTag
-    };
-  };
-
-  /*
-   * Walk through a complete tag path and let deeper
-   * definitions override higher definitions.
-   */
-  const resolveStyles = (parts) => {
-    let tagColor = null;
-    let sidebarColor = null;
-    let hideTag = false;
-
-    let tagColorDepth = -1;
-    let sidebarColorDepth = -1;
-    let hideTagDepth = -1;
-
-    parts.forEach((part, index) => {
-      const parsed = parseStyledLabel(part);
-
-      if (parsed.tagColor) {
-        tagColor = parsed.tagColor;
-        tagColorDepth = index;
-      }
-
-      if (parsed.sidebarColor) {
-        sidebarColor = parsed.sidebarColor;
-        sidebarColorDepth = index;
-      }
-
-      if (parsed.hideTag) {
-        hideTag = true;
-        hideTagDepth = index;
-      }
-    });
-
-    return {
-      tagColor,
-      sidebarColor,
-      hideTag,
-      tagColorDepth,
-      sidebarColorDepth,
-      hideTagDepth
-    };
-  };
-
-  const tokens = raw.split(/\s+/).filter(Boolean);
-
-  const normal = [];
-  const qt = [];
-
-  /*
-   * Sidebar is a card-wide property rather than belonging
-   * to an individual pill.
-   *
-   * If multiple tag paths define one, the most specific
-   * sidebar definition wins.
-   */
-  let cardSidebarColor = null;
-  let cardSidebarDepth = -1;
-
-  for (const token of tokens) {
-    const parts = token.split("::").filter(Boolean);
-    if (!parts.length) continue;
-
-    const styles = resolveStyles(parts);
 
     if (
-      styles.sidebarColor &&
-      styles.sidebarColorDepth > cardSidebarDepth
-    ) {
-      cardSidebarColor = styles.sidebarColor;
-      cardSidebarDepth = styles.sidebarColorDepth;
-    }
+      !tagSourceEl ||
+      !deckSourceEl ||
+      !normalEl ||
+      !questionEl ||
+      !deckIconEl ||
+      !container
+    ) return;
 
-    const lastRaw = parts[parts.length - 1];
 
-    /*
-     * Use the visible portion for special-tag checks,
-     * so metadata doesn't interfere.
-     */
-    const parsedLast = parseStyledLabel(lastRaw);
-    const visibleRaw = parsedLast.label;
-    const last = visibleRaw.toLowerCase();
+    const raw =
+      (tagSourceEl.textContent || "").trim();
 
-    if (last === "leech") {
-      container.classList.add("is-leech");
-      continue;
-    }
+    const deckRaw =
+      (deckSourceEl.textContent || "").trim();
 
-    if (PREFIX.hid.test(visibleRaw)) continue;
 
     /*
-     * t_none means:
-     * keep processing metadata/sidebar,
-     * but do not create a visible tag box.
+     * ---------------------------------------------------------
+     * METADATA FORMATS
+     * ---------------------------------------------------------
+     *
+     * Mammals__t#24613b
+     *
+     * Biology__s#2584a1
+     *
+     * Which_animal_is_this_(English)__q#c49a2c
+     *
+     * Something__t_none
+     *
+     * deckicon::Animals::paw-print
+     *
+     * The last example loads:
+     *
+     * _icon_paw-print.svg
+     *
+     * when the top-level deck is Animals.
      */
-    if (styles.hideTag) continue;
 
-    if (PREFIX.qt.test(visibleRaw)) {
-      const cleaned = stripPrefix(visibleRaw);
 
-      if (cleaned) {
-        qt.push({
-          label: cleaned,
-          color: styles.tagColor,
-          type: "question"
-        });
-      }
+    const PREFIX = {
+      hid: /^hid(?:[:\-_ ]+|$)/i
+    };
 
-      continue;
-    }
 
-    if (last === "at") continue;
+    /*
+     * t = normal tag colour
+     * s = sidebar colour
+     * q = standard-question colour
+     */
+    const STYLE =
+      /__(t|s|q)#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?=__|$)/g;
 
-    if (visibleRaw) {
-      normal.push({
-        label: visibleRaw,
-        color: styles.tagColor,
-        type: "normal"
+
+    const TAG_NONE =
+      /__t_none(?=__|$)/gi;
+
+
+    /*
+     * Used when comparing a deck name to the deck name
+     * stored inside a metadata tag.
+     *
+     * For example:
+     *
+     * "False Belief Systems"
+     *
+     * matches:
+     *
+     * "False_Belief_Systems"
+     */
+    const normalizeKey = (str) =>
+      str
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_]+/g, "_");
+
+
+    const parseStyledLabel = (str) => {
+
+      let tagColor = null;
+      let sidebarColor = null;
+      let questionColor = null;
+      let hideTag = false;
+
+
+      const label = str
+
+        .replace(TAG_NONE, () => {
+          hideTag = true;
+          return "";
+        })
+
+        .replace(STYLE, (_, type, hex) => {
+
+          const color = "#" + hex;
+
+          type = type.toLowerCase();
+
+
+          if (type === "t") {
+            tagColor = color;
+          }
+
+          if (type === "s") {
+            sidebarColor = color;
+          }
+
+          if (type === "q") {
+            questionColor = color;
+          }
+
+
+          return "";
+        })
+
+        .replace(/_/g, " ")
+
+        .trim();
+
+
+      return {
+        label,
+        tagColor,
+        sidebarColor,
+        questionColor,
+        hideTag
+      };
+    };
+
+
+    /*
+     * ---------------------------------------------------------
+     * INHERITED STYLES
+     * ---------------------------------------------------------
+     *
+     * t and s can inherit through:
+     *
+     * Parent::Child::Grandchild
+     *
+     * with the deepest definition winning.
+     *
+     * q deliberately DOES NOT inherit.
+     *
+     * A component is only a standard question if that
+     * component itself contains __q#...
+     */
+
+    const resolveStyles = (parts) => {
+
+      let tagColor = null;
+      let sidebarColor = null;
+      let hideTag = false;
+
+      let tagColorDepth = -1;
+      let sidebarColorDepth = -1;
+      let hideTagDepth = -1;
+
+
+      parts.forEach((part, index) => {
+
+        const parsed =
+          parseStyledLabel(part);
+
+
+        if (parsed.tagColor) {
+          tagColor = parsed.tagColor;
+          tagColorDepth = index;
+        }
+
+
+        if (parsed.sidebarColor) {
+          sidebarColor = parsed.sidebarColor;
+          sidebarColorDepth = index;
+        }
+
+
+        if (parsed.hideTag) {
+          hideTag = true;
+          hideTagDepth = index;
+        }
+
       });
-    }
-  }
 
-  /*
-   * Make sidebar color available to CSS.
-   */
-  if (cardSidebarColor) {
-    container.style.setProperty(
-      "--sidebar-color",
-      cardSidebarColor
-    );
-  }
 
-  const addPills = (container, items) => {
-    if (!items.length) return;
+      return {
+        tagColor,
+        sidebarColor,
+        hideTag,
 
-    const frag = document.createDocumentFragment();
+        tagColorDepth,
+        sidebarColorDepth,
+        hideTagDepth
+      };
+    };
 
-    for (const item of items) {
-      const el = document.createElement("div");
-      el.className = `tags tags--${item.type}`;
-      el.textContent = item.label;
 
-      if (item.color) {
-        el.style.backgroundColor = item.color;
+    const tokens =
+      raw
+        ? raw.split(/\s+/).filter(Boolean)
+        : [];
+
+
+    const normal = [];
+    const questions = [];
+
+
+    /*
+     * Top-level deck:
+     *
+     * Science::Biology
+     *
+     * becomes:
+     *
+     * Science
+     */
+
+    const deckParts =
+      deckRaw
+        .split("::")
+        .map(normalizeKey)
+        .filter(Boolean);
+
+
+    let deckIconName = null;
+
+
+    /*
+     * Sidebar is card-wide.
+     * Most specific definition wins.
+     */
+
+    let cardSidebarColor = null;
+    let cardSidebarDepth = -1;
+
+
+    for (const token of tokens) {
+
+      const parts =
+        token.split("::").filter(Boolean);
+
+      if (!parts.length) continue;
+
+
+      /*
+       * -------------------------------------------------------
+       * DECK ICON METADATA
+       * -------------------------------------------------------
+       *
+       * deckicon::Animals::paw-print
+       *
+       * deckicon::False_Belief_Systems::eye-slash
+       *
+       * These tags are metadata only and never become
+       * visible tag pills.
+       */
+      if (parts[0].toLowerCase() === "deckicon") {
+
+        if (parts.length >= 3) {
+
+          const iconDeck =
+            normalizeKey(parts[1]);
+
+          if (deckParts.includes(iconDeck)) {
+            deckIconName = parts[2];
+          }
+        }
+
+        continue;
+      }
+      const styles =
+        resolveStyles(parts);
+
+
+      /*
+       * Resolve sidebar colour.
+       */
+
+      if (
+        styles.sidebarColor &&
+        styles.sidebarColorDepth > cardSidebarDepth
+      ) {
+
+        cardSidebarColor =
+          styles.sidebarColor;
+
+        cardSidebarDepth =
+          styles.sidebarColorDepth;
       }
 
-      frag.appendChild(el);
+
+      const lastRaw =
+        parts[parts.length - 1];
+
+      const parsedLast =
+        parseStyledLabel(lastRaw);
+
+      const visibleRaw =
+        parsedLast.label;
+
+      const last =
+        visibleRaw.toLowerCase();
+
+
+      /*
+       * Leech warning.
+       */
+
+      if (last === "leech") {
+        container.classList.add("is-leech");
+        continue;
+      }
+
+
+      /*
+       * Explicit hidden tag.
+       */
+
+      if (PREFIX.hid.test(visibleRaw)) {
+        continue;
+      }
+
+
+      /*
+       * t_none:
+       *
+       * metadata/sidebar still work,
+       * but the tag itself is not displayed.
+       */
+
+      if (styles.hideTag) {
+        continue;
+      }
+
+
+      /*
+       * -------------------------------------------------------
+       * STANDARD QUESTION
+       * -------------------------------------------------------
+       *
+       * Presence of __q#HEX means:
+       *
+       * 1. this is a standard question
+       * 2. HEX is its accent colour
+       *
+       * q is checked ONLY on the final component, so it
+       * does not inherit.
+       */
+
+      if (parsedLast.questionColor) {
+
+        if (visibleRaw) {
+
+          questions.push({
+            label: visibleRaw,
+            color: parsedLast.questionColor,
+            type: "question"
+          });
+
+        }
+
+        continue;
+      }
+
+
+      /*
+       * Existing answer-tag exclusion.
+       */
+
+      if (last === "at") {
+        continue;
+      }
+
+
+      /*
+       * Normal orientation tag.
+       */
+
+      if (visibleRaw) {
+
+        normal.push({
+          label: visibleRaw,
+          color: styles.tagColor,
+          type: "normal"
+        });
+
+      }
+
     }
 
-    container.appendChild(frag);
-  };
 
-  addPills(normalEl, normal);
-  addPills(qtEl, qt);
+    /*
+     * ---------------------------------------------------------
+     * SIDEBAR
+     * ---------------------------------------------------------
+     */
 
-  if (!normalEl.children.length) normalEl.style.display = "none";
-  if (!qtEl.children.length) qtEl.style.display = "none";
-})();
+    if (cardSidebarColor) {
+
+      container.style.setProperty(
+        "--sidebar-color",
+        cardSidebarColor
+      );
+
+    }
+
+
+    /*
+     * ---------------------------------------------------------
+     * DECK ICON
+     * ---------------------------------------------------------
+     *
+     * Example:
+     *
+     * deckicon::Animals::paw-print
+     *
+     * loads:
+     *
+     * _icon_paw-print.svg
+     */
+
+    if (deckIconName) {
+
+      deckIconEl.onerror = () => {
+        deckIconEl.hidden = true;
+      };
+
+      deckIconEl.onload = () => {
+        deckIconEl.hidden = false;
+      };
+
+      deckIconEl.src =
+        "_icon_" + deckIconName + ".svg";
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * CREATE TAG ELEMENTS
+     * ---------------------------------------------------------
+     */
+
+
+    const addPillsBackwards = (target, items) => {
+
+      const frag =
+        document.createDocumentFragment();
+
+      for (const item of items) {
+
+        const el =
+          document.createElement("div");
+
+        el.className =
+          `tags tags--${item.type}`;
+
+        const frontCard = document.getElementById("front-text");
+
+        const frontText = frontCard.textContent;
+
+        newText = item.label.replace("*", frontText);
+
+        frontCard.innerHTML = frontCard.innerHTML.replace(frontText, newText)
+        
+
+        frag.appendChild(el);
+      }
+
+
+      target.appendChild(frag);
+    };
+
+    const addPills = (target, items) => {
+
+      if (!items.length) return;
+
+
+      const frag =
+        document.createDocumentFragment();
+
+
+      for (const item of items) {
+
+        const el =
+          document.createElement("div");
+
+        el.className =
+          `tags tags--${item.type}`;
+
+        el.textContent =
+          item.label;
+
+
+        /*
+         * Normal tag:
+         *   colour becomes background.
+         *
+         * Standard question:
+         *   colour becomes accent variable instead.
+         */
+
+        if (item.color) {
+
+          if (item.type === "question") {
+
+            el.style.setProperty(
+              "--question-color",
+              item.color
+            );
+
+          } else {
+
+            el.style.backgroundColor =
+              item.color;
+
+          }
+
+        }
+
+        frag.appendChild(el);
+
+      }
+
+
+      target.appendChild(frag);
+    };
+
+
+    addPills(
+      normalEl,
+      normal
+    );
+
+
+    addPillsBackwards(
+      questionEl,
+      questions
+    );
+
+
+    /*
+     * Hide an empty normal row only if it has neither
+     * tags nor a deck icon.
+     */
+
+    if (
+      !normal.length &&
+      deckIconEl.hidden
+    ) {
+      normalEl.style.display = "none";
+    }
+
+
+  })();
 </script>
 
 <script>

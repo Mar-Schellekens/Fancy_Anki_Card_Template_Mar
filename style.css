@@ -1,10 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
-/* =========================================================
-   SECTION HEADINGS (ENGLISH DEFAULTS)
-   ---------------------------------------------------------
-   Change these values to localize headings without JS.
-========================================================= */
 .deck-name {
   font-size: 10px;
   opacity: 0.35;
@@ -94,6 +89,7 @@ code {
 :root {
 	/* LOCALIZATION */
 	--h-extra-title: "Extra info";
+  --h-image-title: "Image";
   --h-extra-reminder: "Dit hoef je niet te herinneren";
   --h-hint-title: "Ezelsbruggetje";
   --h-source-title: "Bron";
@@ -135,8 +131,8 @@ code {
   /* TYPOGRAPHY */
   --font-main: Poppins, Arial, sans-serif;
 
-  --fs-front: 24px;
-  --fs-common: 18px;
+  --fs-front: 20px;
+  --fs-common: 20px;
   --fs-tag: 13px;
 
   --fw-front: 600;
@@ -203,8 +199,34 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
+
+
+
+.deck-icon {
+  display: block;
+
+  width: 24px;
+  height: 24px;
+
+  flex: 0 0 24px;
+
+  margin: auto 2px auto 0;
+
+  border-radius: 0;
+
+  object-fit: contain;
+
+  filter: none;
+}
+
+.nightMode .deck-icon,
+html.nightMode .deck-icon,
+body.nightMode .deck-icon {
+  filter: invert(1);
+}
+
 
 .tags {
   padding: 7.5px var(--space-2);
@@ -220,10 +242,51 @@ body {
   background-color: var(--bg-accent);
 }
 
-/* Question tags (qt) */
-.tags--question {
-  background-color: #d46e6a; /* example blue */
+/* =========================================================
+   STANDARD QUESTION
+   ---------------------------------------------------------
+   Distinct from category tags:
+   - full-width prompt block
+   - sentence case
+   - q-color used as an accent
+========================================================= */
+
+.tag-container--question {
+  display: block;
+  margin-bottom: 14px;
 }
+
+.tags--question {
+  display: block;
+  width: 100%;
+  max-width: none;
+
+  padding: 10px 14px 11px 14px;
+
+
+  background-color: var(--bg-main);
+  color: var(--text-main);
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-transform: none;
+
+  box-shadow: none;
+}
+
+.tags--question::before {
+  content: "QUESTION";
+  display: block;
+  margin-bottom: 3px;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
 
 /* Answer tags (at) */
 .tags--answer {
@@ -249,9 +312,9 @@ body {
 }
 
 .front-card {
-  font-size: var(--fs-front);
-  font-weight: var(--fw-front);
-	border-left: 5px solid var(--sidebar-color, #000000);
+  font-size: var(--fs-common);
+  font-weight: var(--fw-common);
+	border-left: 5px solid transparent;
 	border-right: 5px solid transparent;
 	padding-left: 12px;
 }
@@ -302,6 +365,7 @@ img {
 .subtitle--extra::before  { content: var(--h-extra-title); }
 .reminder--extra::before  { content: var(--h-extra-reminder); }
 
+.subtitle--image::before { content: var(--h-image-title)}
 .subtitle--hint::before   { content: var(--h-hint-title); }
 .subtitle--source::before { content: var(--h-source-title); }
 .subtitle--pronounciation::before { content: var(--h-pronounciation-title); }
