@@ -200,6 +200,7 @@ body {
   flex-wrap: wrap;
   gap: var(--space-1);
   margin-bottom: var(--space-2);
+
 }
 
 
@@ -237,69 +238,68 @@ body.nightMode .deck-icon {
   text-transform: uppercase;
 }
 
-/* Default tags (normal) */
-.tags--normal {
-  background-color: var(--bg-accent);
+/* Joined icon + tag */
+#tagContainer {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
 }
 
-/* =========================================================
-   STANDARD QUESTION
-   ---------------------------------------------------------
-   Distinct from category tags:
-   - full-width prompt block
-   - sentence case
-   - q-color used as an accent
-========================================================= */
+/* Burgundy icon section */
+#tagContainer > .deck-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-.tag-container--question {
+  padding: 0 12px;
+
+  background-color: var(--sidebar-color, #76234b);
+  border-radius: 12px 0 0 12px;
+}
+
+#tagContainer > .deck-icon-badge[hidden] {
+  display: none;
+}
+
+/* White icon */
+#tagContainer .deck-icon {
   display: block;
-  margin-bottom: 14px;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  object-fit: contain;
+
+  filter: brightness(0) invert(1);
 }
 
-.tags--question {
-  display: block;
-  width: 100%;
-  max-width: none;
+/* Blue tag section */
+#tagContainer > .tags--normal {
+  display: flex;
+  align-items: center;
 
-  padding: 10px 14px 11px 14px;
-
-
-  background-color: var(--bg-main);
-  color: var(--text-main);
-
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: none;
-
-  box-shadow: none;
-}
-
-.tags--question::before {
-  content: "QUESTION";
-  display: block;
-  margin-bottom: 3px;
-
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.5;
+  border: none;
+  border-radius: 0 12px 12px 0;
+  margin: 0;
 }
 
 
-/* Answer tags (at) */
-.tags--answer {
-  background-color: #6b1a1a; /* example deep red */
-  color: #ffffff;
+
+/* Restore rounded corners when there is no icon */
+#tagContainer > .tags--normal:first-of-type {
+  border-radius: 12px;
 }
 
-.tags--leech {
-  background-color: #b30000;  /* strong warning red */
-  color: #ffffff;
+/* Join the tag to a visible icon */
+#tagContainer > .deck-icon-badge:not([hidden]) + .tags--normal {
+  border-radius: 0 12px 12px 0;
 }
 
-.tags:empty { display: none; }
+/* Keep additional tags separate */
+#tagContainer > .tags--normal + .tags--normal {
+  margin-left: 8px;
+  border-radius: 12px;
+}
+
 
 /* CARD BLOCKS */
 .front-card,

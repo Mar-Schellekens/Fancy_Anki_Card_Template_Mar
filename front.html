@@ -3,7 +3,9 @@
   <!-- Normal orientation tags + deck icon -->
 
   <div class="tag-container" id="tagContainer">
-    <img id="deckIcon" class="deck-icon" alt="" hidden>
+    <div class="deck-icon-badge" id="deckIconBadge" hidden>
+      <img id="deckIcon" class="deck-icon" alt="" hidden>
+    </div>
   </div>
 
   <div class="front-card" id="front-text">{{Front}}</div>
@@ -63,7 +65,7 @@
      * q = standard-question colour
      */
     const STYLE =
-      /__(t|q)#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?=__|$)/g;
+      /__(t|s|q)#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?=__|$)/g;
 
 
     const TAG_NONE =
@@ -436,10 +438,12 @@
 
       deckIconEl.onerror = () => {
         deckIconEl.hidden = true;
+        deckIconBadge.hidden = true;
       };
 
       deckIconEl.onload = () => {
         deckIconEl.hidden = false;
+        deckIconBadge.hidden = false;
       };
 
       deckIconEl.src =
@@ -454,32 +458,50 @@
 
 
     const addPillsBackwards = (target, items) => {
-
-      const frag =
-        document.createDocumentFragment();
-
       for (const item of items) {
 
-        const el =
-          document.createElement("div");
+        if (item.label.includes("*")) {
+          // Insert the original content at the placeholder.
+          const parts = item.label.split("*");
+          const original = Array.from(target.childNodes);
+          const fragment = document.createDocumentFragment();
 
-        el.className =
-          `tags tags--${item.type}`;
+          parts.forEach((part, index) => {
+            fragment.appendChild(document.createTextNode(part));
 
-        const frontCard = document.getElementById("front-text");
+            if (index < parts.length - 1) {
+              for (const node of original) {
+                fragment.appendChild(node);
+              }
+            }
+          });
 
-        const frontText = frontCard.textContent;
+          target.replaceChildren(fragment);
 
-        newText = item.label.replace("*", frontText);
+        } else {
+          // Preserve Anki's audio playback elements.
+          // Preserve Anki's media elements.
+const mediaElements = Array.from(
+  target.querySelectorAll(
+    ".replay-button, .soundLink, audio, img, video"
+  )
+).filter(el =>
+  !el.parentElement?.closest(
+    ".replay-button, .soundLink, audio, img, video"
+  )
+);
 
-        frontCard.innerHTML = frontCard.innerHTML.replace(frontText, newText)
-        
+// Replace the question text.
+target.replaceChildren(
+  document.createTextNode(item.label)
+);
 
-        frag.appendChild(el);
+// Restore the original media elements.
+for (const media of mediaElements) {
+  target.appendChild(media);
+}
+        }
       }
-
-
-      target.appendChild(frag);
     };
 
     const addPills = (target, items) => {
